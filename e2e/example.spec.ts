@@ -1,18 +1,27 @@
 import { test, expect } from '@playwright/test';
 
-test('has title', async ({ page }) => {
-  await page.goto('https://playwright.dev/');
-
-  // Expect a title "to contain" a substring.
-  await expect(page).toHaveTitle(/Playwright/);
+test.beforeEach(async ({ page }) => {
+  await page.goto('/');
 });
 
-test('get started link', async ({ page }) => {
-  await page.goto('https://playwright.dev/');
+test('логотип повертає користувача до налаштувань', async ({ page }) => {
+  await page.getByRole('button', { name: /Почати вікторину/ }).click();
 
-  // Click the get started link.
-  await page.getByRole('link', { name: 'Get started' }).click();
+  await expect(page.getByRole('heading', { name: /Час перевірити знання/ })).toBeVisible();
 
-  // Expects page to have a heading with the name of Installation.
-  await expect(page.getByRole('heading', { name: 'Installation' })).toBeVisible();
+  await page.getByRole('button', { name: /QuizLab/ }).click();
+
+  await expect(page.getByRole('heading', { name: 'Створи свою вікторину' })).toBeVisible();
+});
+
+test('користувач може завершити вікторину достроково', async ({ page }) => {
+  await page.getByRole('button', { name: /Почати вікторину/ }).click();
+
+  await expect(page.getByRole('heading', { name: /Час перевірити знання/ })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Завершити' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Створи свою вікторину' })).toBeVisible();
+
+  await expect(page.getByRole('button', { name: /Почати вікторину/ })).toBeEnabled();
 });

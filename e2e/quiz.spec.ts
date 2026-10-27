@@ -66,3 +66,38 @@ for (const width of [320, 375, 768, 1024, 1440]) {
     ).toBeLessThanOrEqual(dimensions.viewportWidth);
   });
 }
+
+for (const width of [320, 375, 768]) {
+  test(`адаптивність вікторини та результатів: ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 800 });
+    await page.goto('/');
+
+    const expectNoHorizontalOverflow = async () => {
+      const dimensions = await page.evaluate(() => ({
+        viewportWidth: document.documentElement.clientWidth,
+        documentWidth: document.documentElement.scrollWidth,
+      }));
+
+      expect(
+        dimensions.documentWidth,
+        `Горизонтальне переповнення при ширині ${width}px`,
+      ).toBeLessThanOrEqual(dimensions.viewportWidth);
+    };
+
+    await expectNoHorizontalOverflow();
+
+    await page.getByRole('button', { name: /Почати вікторину/ }).click();
+    await expect(page.locator('h2[tabindex="-1"]')).toBeVisible();
+    await expectNoHorizontalOverflow();
+
+    await page.locator('button[aria-pressed]').first().click();
+    await page.getByRole('button', { name: /Наступне запитання/ }).click();
+
+    await page.locator('button[aria-pressed]').first().click();
+    await page.getByRole('button', { name: /Побачити результат/ }).click();
+
+    await expect(page.getByRole('heading', { name: 'Чудова робота!' })).toBeVisible();
+
+    await expectNoHorizontalOverflow();
+  });
+}

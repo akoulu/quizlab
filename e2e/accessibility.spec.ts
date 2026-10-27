@@ -28,7 +28,6 @@ test('екран вікторини не має порушень автомат�
 test('екран результатів не має порушень автоматичного аудиту доступності', async ({ page }) => {
   await page.getByRole('button', { name: /Почати вікторину/ }).click();
 
-  // Проходимо вікторину, обираючи перший варіант у кожному запитанні.
   await page.locator('button[aria-pressed]').first().click();
   await page.getByRole('button', { name: /Наступне запитання/ }).click();
 
@@ -42,4 +41,55 @@ test('екран результатів не має порушень автом�
     .analyze();
 
   expect(accessibilityScanResults.violations).toEqual([]);
+});
+
+test('після початку вікторини фокус переходить на заголовок запитання', async ({ page }) => {
+  await page.getByRole('button', { name: /Почати вікторину/ }).click();
+
+  const questionHeading = page.locator('h2[tabindex="-1"]');
+
+  await expect(questionHeading).toBeVisible();
+  await expect(questionHeading).toBeFocused();
+});
+
+test('після переходу до наступного запитання фокус оновлюється', async ({ page }) => {
+  await page.getByRole('button', { name: /Почати вікторину/ }).click();
+
+  await page.locator('button[aria-pressed]').first().click();
+  await page.getByRole('button', { name: /Наступне запитання/ }).click();
+
+  const questionHeading = page.locator('h2[tabindex="-1"]');
+
+  await expect(questionHeading).toBeVisible();
+  await expect(questionHeading).toBeFocused();
+});
+
+test('після завершення вікторини фокус переходить на результати', async ({ page }) => {
+  await page.getByRole('button', { name: /Почати вікторину/ }).click();
+
+  await page.locator('button[aria-pressed]').first().click();
+  await page.getByRole('button', { name: /Наступне запитання/ }).click();
+
+  await page.locator('button[aria-pressed]').first().click();
+  await page.getByRole('button', { name: /Побачити результат/ }).click();
+
+  const resultsHeading = page.getByRole('heading', {
+    name: 'Чудова робота!',
+  });
+
+  await expect(resultsHeading).toBeVisible();
+  await expect(resultsHeading).toBeFocused();
+});
+
+test('після перезапуску фокус повертається до налаштувань', async ({ page }) => {
+  await page.getByRole('button', { name: /Почати вікторину/ }).click();
+
+  await page.getByRole('button', { name: /QuizLab/ }).click();
+
+  const settingsHeading = page.getByRole('heading', {
+    name: 'Створи свою вікторину',
+  });
+
+  await expect(settingsHeading).toBeVisible();
+  await expect(settingsHeading).toBeFocused();
 });
