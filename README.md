@@ -135,3 +135,7 @@ QuizLab is an actively developed project. The current version focuses on the cor
 ## License
 
 No license has been specified yet. All rights are reserved by default unless a license is added to this repository.
+
+## Deployment
+
+QuizLab is deployed on Vercel.
