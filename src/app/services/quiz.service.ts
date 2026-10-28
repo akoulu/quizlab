@@ -1,17 +1,8 @@
 ﻿import { computed, Injectable, signal } from '@angular/core';
 
-import type {
-  CategoryId,
-  DifficultyId,
-  QuizAnswer,
-  QuizQuestion,
-} from '../domain/quiz.types';
+import type { CategoryId, DifficultyId, QuizAnswer, QuizQuestion } from '../domain/quiz.types';
 
-import type {
-  QuizResult,
-  QuizSessionState,
-  QuizSettings,
-} from '../domain/quiz.models';
+import type { QuizResult, QuizSessionState, QuizSettings } from '../domain/quiz.models';
 
 import { QUESTIONS } from '../data/questions';
 
@@ -71,28 +62,19 @@ export class QuizService {
     );
   });
 
-  getAvailableQuestionCount(
-    category: CategoryId,
-    difficulty: DifficultyId,
-  ): number {
+  getAvailableQuestionCount(category: CategoryId, difficulty: DifficultyId): number {
     return QUESTIONS.filter(
-      (question) =>
-        question.category === category &&
-        question.difficulty === difficulty,
+      (question) => question.category === category && question.difficulty === difficulty,
     ).length;
   }
 
   startQuiz(settings: QuizSettings): void {
     const availableQuestions = QUESTIONS.filter(
       (question) =>
-        question.category === settings.category &&
-        question.difficulty === settings.difficulty,
+        question.category === settings.category && question.difficulty === settings.difficulty,
     );
 
-    if (
-      !Number.isInteger(settings.questionCount) ||
-      settings.questionCount < 1
-    ) {
+    if (!Number.isInteger(settings.questionCount) || settings.questionCount < 1) {
       throw new RangeError('Кількість запитань має бути додатним цілим числом.');
     }
 
@@ -122,6 +104,61 @@ export class QuizService {
     });
   }
 
+  startQuizWithQuestions(questions: readonly QuizQuestion[]): void {
+    if (questions.length === 0) {
+      throw new RangeError('Вікторина повинна містити хоча б одне запитання.');
+    }
+
+    const questionIds = new Set<string>();
+
+    for (const question of questions) {
+      if (!question.id.trim() || questionIds.has(question.id)) {
+        throw new Error('ID запитань мають бути непорожніми й унікальними.');
+      }
+
+      questionIds.add(question.id);
+
+      if (question.options.length < 2) {
+        throw new Error('Кожне запитання повинно мати щонайменше два варіанти відповіді.');
+      }
+
+      const answerIds = new Set<string>();
+
+      for (const option of question.options) {
+        if (!option.id.trim() || answerIds.has(option.id)) {
+          throw new Error('ID варіантів відповіді мають бути непорожніми й унікальними.');
+        }
+
+        answerIds.add(option.id);
+      }
+
+      if (!answerIds.has(question.correctAnswerId)) {
+        throw new Error('Правильна відповідь повинна посилатися на наявний варіант.');
+      }
+    }
+
+    const firstQuestion = questions[0];
+
+    this.stateSignal.set({
+      phase: 'playing',
+      settings: {
+        category: firstQuestion.category,
+        difficulty: firstQuestion.difficulty,
+        questionCount: questions.length,
+      },
+      questions: questions.map((question) => ({
+        ...question,
+        options: shuffle(question.options),
+      })),
+      currentQuestionIndex: 0,
+      selectedAnswerId: null,
+      answers: [],
+      score: 0,
+      startedAt: Date.now(),
+      finishedAt: null,
+    });
+  }
+
   submitAnswer(answerId: string): void {
     const state = this.stateSignal();
     const question = state.questions[state.currentQuestionIndex];
@@ -130,9 +167,7 @@ export class QuizService {
       return;
     }
 
-    const answerExists = question.options.some(
-      (option) => option.id === answerId,
-    );
+    const answerExists = question.options.some((option) => option.id === answerId);
 
     if (!answerExists) {
       throw new Error('Вибраний варіант відповіді не існує.');
@@ -163,8 +198,7 @@ export class QuizService {
       return;
     }
 
-    const isLastQuestion =
-      state.currentQuestionIndex >= state.questions.length - 1;
+    const isLastQuestion = state.currentQuestionIndex >= state.questions.length - 1;
 
     if (isLastQuestion) {
       this.stateSignal.update((current) => ({
@@ -200,14 +234,8 @@ export class QuizService {
       correctAnswers,
       incorrectAnswers: totalQuestions - correctAnswers,
       score: correctAnswers,
-      percentage:
-        totalQuestions === 0
-          ? 0
-          : Math.round((correctAnswers / totalQuestions) * 100),
-      durationSeconds: Math.max(
-        0,
-        Math.floor((finishedAt - state.startedAt) / 1000),
-      ),
+      percentage: totalQuestions === 0 ? 0 : Math.round((correctAnswers / totalQuestions) * 100),
+      durationSeconds: Math.max(0, Math.floor((finishedAt - state.startedAt) / 1000)),
     };
   }
 

@@ -1,11 +1,43 @@
 ﻿import { TestBed } from '@angular/core/testing';
 
+import {
+  QUESTION_REPOSITORY,
+  QUIZ_CONTENT_REPOSITORY,
+  QUIZ_REPOSITORY,
+} from './application/repository.tokens';
 import { App } from './app';
 
 describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
+      providers: [
+        {
+          provide: QUIZ_REPOSITORY,
+          useValue: {
+            getAll: async () => [],
+            getById: async () => null,
+            save: async () => undefined,
+          },
+        },
+        {
+          provide: QUESTION_REPOSITORY,
+          useValue: {
+            getById: async () => null,
+            getByQuizId: async () => [],
+            getByIds: async () => [],
+            save: async () => undefined,
+            saveMany: async () => undefined,
+            delete: async () => undefined,
+          },
+        },
+        {
+          provide: QUIZ_CONTENT_REPOSITORY,
+          useValue: {
+            saveQuestionAndQuiz: async () => undefined,
+          },
+        },
+      ],
     }).compileComponents();
   });
 
@@ -201,4 +233,3 @@ describe('App', () => {
     expect(content).toContain('Створи свою вікторину');
   });
 });
-

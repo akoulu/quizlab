@@ -1,15 +1,18 @@
 ﻿<div class="min-h-screen bg-[#f7f7fb] text-slate-900">
   <header class="border-b border-slate-200/80 bg-white">
     <div class="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 sm:px-8">
-      <button
-        type="button"
-        class="flex items-center gap-3"
-        (click)="restartQuiz()"
-      >
-        <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-600 text-xl font-bold text-white">Q</span>
-        <span class="text-xl font-extrabold tracking-tight">Quiz<span class="text-violet-600">Lab</span></span>
+      <button type="button" class="flex items-center gap-3" (click)="restartQuiz()">
+        <span
+          class="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-600 text-xl font-bold text-white"
+          >Q</span
+        >
+        <span class="text-xl font-extrabold tracking-tight"
+          >Quiz<span class="text-violet-600">Lab</span></span
+        >
       </button>
-      <span class="hidden rounded-full bg-violet-50 px-4 py-2 text-sm font-semibold text-violet-700 sm:inline-flex">
+      <span
+        class="hidden rounded-full bg-violet-50 px-4 py-2 text-sm font-semibold text-violet-700 sm:inline-flex"
+      >
         Твоя територія знань
       </span>
     </div>
@@ -19,19 +22,23 @@
     @if (quiz.state().phase === 'idle') {
       <section class="grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
         <div>
-          <div class="mb-6 inline-flex items-center gap-2 rounded-full border border-violet-100 bg-white px-3 py-2 text-sm font-semibold text-violet-700 shadow-sm">
+          <div
+            class="mb-6 inline-flex items-center gap-2 rounded-full border border-violet-100 bg-white px-3 py-2 text-sm font-semibold text-violet-700 shadow-sm"
+          >
             <span aria-hidden="true">✦</span>
             Навчайся, граючи
           </div>
 
-          <h1 class="max-w-2xl text-4xl font-black leading-tight tracking-tight sm:text-5xl lg:text-6xl">
+          <h1
+            class="max-w-2xl text-4xl font-black leading-tight tracking-tight sm:text-5xl lg:text-6xl"
+          >
             Перевір свої знання.
             <span class="text-violet-600">Відкрий нове.</span>
           </h1>
 
           <p class="mt-6 max-w-xl text-base leading-7 text-slate-600 sm:text-lg">
-            Короткі вікторини, цікаві запитання та маленькі перемоги.
-            Обери тему, налаштуй складність — і вперед!
+            Короткі вікторини, цікаві запитання та маленькі перемоги. Обери тему, налаштуй
+            складність — і вперед!
           </p>
 
           <div class="mt-8 flex flex-wrap gap-3 text-sm text-slate-600">
@@ -43,13 +50,19 @@
 
         <div class="relative mx-auto w-full max-w-md">
           <div class="absolute -inset-4 rounded-4xl bg-violet-200/50 blur-2xl"></div>
-          <div class="relative overflow-hidden rounded-3xl bg-violet-700 p-7 text-white shadow-xl shadow-violet-200 sm:p-9">
+          <div
+            class="relative overflow-hidden rounded-3xl bg-violet-700 p-7 text-white shadow-xl shadow-violet-200 sm:p-9"
+          >
             <div class="flex items-start justify-between">
               <div>
                 <p class="text-sm font-medium text-violet-200">Твій наступний виклик</p>
                 <h2 class="mt-2 text-2xl font-extrabold">Мисли ширше</h2>
               </div>
-              <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 text-2xl" aria-hidden="true">🧩</span>
+              <span
+                class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 text-2xl"
+                aria-hidden="true"
+                >🧩</span
+              >
             </div>
 
             <div class="my-8 rounded-2xl border border-white/15 bg-white/10 p-5">
@@ -68,9 +81,81 @@
         </div>
       </section>
 
-      <section class="mt-14 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:mt-20 sm:p-8 lg:p-10">
+      <section
+        class="mt-10 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8"
+        aria-labelledby="custom-quizzes-heading"
+      >
+        <div class="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p class="text-sm font-bold uppercase tracking-[0.18em] text-violet-600">
+              Твій контент
+            </p>
+            <h2 id="custom-quizzes-heading" class="mt-2 text-2xl font-extrabold">
+              Користувацькі вікторини
+            </h2>
+            <p class="mt-2 text-sm text-slate-600">Опубліковані вікторини, створені в QuizLab.</p>
+          </div>
+          <button
+            type="button"
+            (click)="loadPublishedQuizzes()"
+            [disabled]="customQuizzesLoading()"
+            class="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-violet-300 disabled:cursor-not-allowed"
+          >
+            Оновити список
+          </button>
+        </div>
+
+        @if (customQuizzesLoading()) {
+          <p class="mt-5 text-sm text-slate-600" role="status">Завантаження вікторин…</p>
+        } @else if (customQuizzes().length > 0) {
+          <div class="mt-6 grid gap-4 md:grid-cols-2">
+            @for (customQuiz of customQuizzes(); track customQuiz.id) {
+              <article class="rounded-2xl border border-slate-200 p-5">
+                <h3 class="text-lg font-bold">{{ customQuiz.title }}</h3>
+
+                @if (customQuiz.description) {
+                  <p class="mt-2 whitespace-pre-line text-sm leading-6 text-slate-600">
+                    {{ customQuiz.description }}
+                  </p>
+                }
+
+                <p class="mt-3 text-sm text-slate-500">
+                  Запитань: {{ customQuiz.questionIds.length }}
+                </p>
+
+                <button
+                  type="button"
+                  (click)="startCustomQuiz(customQuiz)"
+                  class="mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-violet-600 px-5 py-3 font-bold text-white transition hover:bg-violet-700 focus:outline-none focus:ring-4 focus:ring-violet-200"
+                >
+                  Почати цю вікторину
+                  <span aria-hidden="true">→</span>
+                </button>
+              </article>
+            }
+          </div>
+        } @else {
+          <p class="mt-5 rounded-xl bg-slate-50 p-4 text-sm leading-6 text-slate-600">
+            Опублікованих користувацьких вікторин поки немає. Чернетки не відображаються в каталозі.
+          </p>
+        }
+
+        @if (customQuizzesNotice()) {
+          <p
+            class="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900"
+            role="alert"
+          >
+            {{ customQuizzesNotice() }}
+          </p>
+        }
+      </section>
+      <section
+        class="mt-14 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:mt-20 sm:p-8 lg:p-10"
+      >
         <div>
-          <p class="text-sm font-bold uppercase tracking-[0.18em] text-violet-600">Налаштування гри</p>
+          <p class="text-sm font-bold uppercase tracking-[0.18em] text-violet-600">
+            Налаштування гри
+          </p>
           <h2
             #settingsHeading
             tabindex="-1"
@@ -82,20 +167,23 @@
         </div>
 
         <div class="mt-9" role="group" aria-labelledby="category-heading">
-          <h3 id="category-heading" class="text-base font-bold">
-            1. Обери категорію
-          </h3>
+          <h3 id="category-heading" class="text-base font-bold">1. Обери категорію</h3>
           <div class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             @for (category of categories; track category.id) {
               <button
                 type="button"
                 (click)="selectCategory(category.id)"
                 [attr.aria-pressed]="selectedCategory() === category.id"
-                [class]="selectedCategory() === category.id
-                  ? 'rounded-2xl border-2 border-violet-500 bg-violet-50 p-4 text-left transition'
-                  : 'rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:border-violet-300 hover:bg-slate-50'"
+                [class]="
+                  selectedCategory() === category.id
+                    ? 'rounded-2xl border-2 border-violet-500 bg-violet-50 p-4 text-left transition'
+                    : 'rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:border-violet-300 hover:bg-slate-50'
+                "
               >
-                <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-2xl shadow-sm">{{ category.icon }}</span>
+                <span
+                  class="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-2xl shadow-sm"
+                  >{{ category.icon }}</span
+                >
                 <span class="mt-4 block font-bold">{{ category.title }}</span>
                 <span class="mt-1 block text-sm text-slate-600">{{ category.description }}</span>
                 @if (selectedCategory() === category.id) {
@@ -114,9 +202,11 @@
                 type="button"
                 (click)="selectDifficulty(difficulty.id)"
                 [attr.aria-pressed]="selectedDifficulty() === difficulty.id"
-                [class]="selectedDifficulty() === difficulty.id
-                  ? 'rounded-2xl border-2 border-violet-500 bg-violet-50 p-4 text-left transition'
-                  : 'rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:border-violet-300'"
+                [class]="
+                  selectedDifficulty() === difficulty.id
+                    ? 'rounded-2xl border-2 border-violet-500 bg-violet-50 p-4 text-left transition'
+                    : 'rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:border-violet-300'
+                "
               >
                 <span class="block font-bold">{{ difficulty.title }}</span>
                 <span class="mt-1 block text-sm text-slate-600">{{ difficulty.description }}</span>
@@ -136,9 +226,11 @@
                 type="button"
                 (click)="selectQuestionCount(count)"
                 [attr.aria-pressed]="questionCount() === count"
-                [class]="questionCount() === count
-                  ? 'min-w-16 rounded-xl border-2 border-violet-500 bg-violet-600 px-5 py-3 font-bold text-white transition'
-                  : 'min-w-16 rounded-xl border border-slate-200 bg-white px-5 py-3 font-bold text-slate-700 transition hover:border-violet-300'"
+                [class]="
+                  questionCount() === count
+                    ? 'min-w-16 rounded-xl border-2 border-violet-500 bg-violet-600 px-5 py-3 font-bold text-white transition'
+                    : 'min-w-16 rounded-xl border border-slate-200 bg-white px-5 py-3 font-bold text-slate-700 transition hover:border-violet-300'
+                "
               >
                 {{ count }}
               </button>
@@ -163,7 +255,10 @@
           </div>
 
           @if (notice()) {
-            <p class="mt-5 rounded-xl border border-violet-200 bg-violet-50 p-4 text-sm leading-6 text-violet-900" role="status">
+            <p
+              class="mt-5 rounded-xl border border-violet-200 bg-violet-50 p-4 text-sm leading-6 text-violet-900"
+              role="status"
+            >
               {{ notice() }}
             </p>
           }
@@ -173,7 +268,9 @@
       <section class="mx-auto max-w-3xl">
         <div class="mb-8 flex items-center justify-between gap-4">
           <div>
-            <p class="text-sm font-bold uppercase tracking-[0.18em] text-violet-600">QuizLab · Вікторина</p>
+            <p class="text-sm font-bold uppercase tracking-[0.18em] text-violet-600">
+              QuizLab · Вікторина
+            </p>
             <h1 class="mt-2 text-2xl font-extrabold sm:text-3xl">Час перевірити знання</h1>
           </div>
           <button
@@ -187,7 +284,10 @@
 
         <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
           <div class="flex items-center justify-between gap-4 text-sm font-semibold text-slate-600">
-            <span>Запитання {{ quiz.state().currentQuestionIndex + 1 }} із {{ quiz.state().questions.length }}</span>
+            <span
+              >Запитання {{ quiz.state().currentQuestionIndex + 1 }} із
+              {{ quiz.state().questions.length }}</span
+            >
             <span>Рахунок: {{ quiz.state().score }}</span>
           </div>
 
@@ -231,20 +331,32 @@
                     (click)="selectAnswer(option.id)"
                     [disabled]="quiz.state().phase !== 'playing'"
                     [attr.aria-pressed]="isAnswerSelected(option.id)"
-                    [class]="quiz.state().phase === 'answered' && isAnswerCorrect(option.id)
-                      ? 'flex items-center gap-4 rounded-2xl border-2 border-emerald-500 bg-emerald-50 p-4 text-left transition'
-                      : quiz.state().phase === 'answered' && isAnswerSelected(option.id)
-                        ? 'flex items-center gap-4 rounded-2xl border-2 border-rose-400 bg-rose-50 p-4 text-left transition'
-                        : 'flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:border-violet-400 hover:bg-violet-50 disabled:cursor-default disabled:hover:border-slate-200 disabled:hover:bg-white'"
+                    [class]="
+                      quiz.state().phase === 'answered' && isAnswerCorrect(option.id)
+                        ? 'flex items-center gap-4 rounded-2xl border-2 border-emerald-500 bg-emerald-50 p-4 text-left transition'
+                        : quiz.state().phase === 'answered' && isAnswerSelected(option.id)
+                          ? 'flex items-center gap-4 rounded-2xl border-2 border-rose-400 bg-rose-50 p-4 text-left transition'
+                          : 'flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:border-violet-400 hover:bg-violet-50 disabled:cursor-default disabled:hover:border-slate-200 disabled:hover:bg-white'
+                    "
                   >
-                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-sm font-extrabold text-slate-600">
+                    <span
+                      class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-sm font-extrabold text-slate-600"
+                    >
                       {{ ['A', 'B', 'C', 'D'][i] }}
                     </span>
                     <span class="font-semibold">{{ option.text }}</span>
                     @if (quiz.state().phase === 'answered' && isAnswerCorrect(option.id)) {
-                      <span class="ml-auto font-bold text-emerald-700" aria-label="Правильна відповідь">✓</span>
+                      <span
+                        class="ml-auto font-bold text-emerald-700"
+                        aria-label="Правильна відповідь"
+                        >✓</span
+                      >
                     } @else if (quiz.state().phase === 'answered' && isAnswerSelected(option.id)) {
-                      <span class="ml-auto font-bold text-rose-700" aria-label="Обрана неправильна відповідь">✕</span>
+                      <span
+                        class="ml-auto font-bold text-rose-700"
+                        aria-label="Обрана неправильна відповідь"
+                        >✕</span
+                      >
                     }
                   </button>
                 }
@@ -253,13 +365,19 @@
               @if (quiz.state().phase === 'answered') {
                 <div
                   class="mt-6 rounded-2xl p-5"
-                  [class]="isAnswerCorrect(quiz.state().selectedAnswerId ?? '')
-                    ? 'border border-emerald-200 bg-emerald-50'
-                    : 'border border-amber-200 bg-amber-50'"
+                  [class]="
+                    isAnswerCorrect(quiz.state().selectedAnswerId ?? '')
+                      ? 'border border-emerald-200 bg-emerald-50'
+                      : 'border border-amber-200 bg-amber-50'
+                  "
                   role="status"
                 >
                   <h3 class="font-extrabold">
-                    {{ isAnswerCorrect(quiz.state().selectedAnswerId ?? '') ? 'Правильно! 🎉' : 'Не зовсім так' }}
+                    {{
+                      isAnswerCorrect(quiz.state().selectedAnswerId ?? '')
+                        ? 'Правильно! 🎉'
+                        : 'Не зовсім так'
+                    }}
                   </h3>
                   @if (question.explanation) {
                     <p class="mt-2 text-sm leading-6 text-slate-700">{{ question.explanation }}</p>
@@ -271,7 +389,11 @@
                   (click)="nextQuestion()"
                   class="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-6 py-4 font-bold text-white transition hover:bg-violet-700 focus:outline-none focus:ring-4 focus:ring-violet-200"
                 >
-                  {{ quiz.state().currentQuestionIndex === quiz.state().questions.length - 1 ? 'Побачити результат' : 'Наступне запитання' }}
+                  {{
+                    quiz.state().currentQuestionIndex === quiz.state().questions.length - 1
+                      ? 'Побачити результат'
+                      : 'Наступне запитання'
+                  }}
                   <span aria-hidden="true">→</span>
                 </button>
               }
@@ -282,13 +404,16 @@
     } @else if (quiz.state().phase === 'completed') {
       <section class="mx-auto max-w-2xl">
         <div class="rounded-3xl border border-slate-200 bg-white p-6 text-center shadow-sm sm:p-10">
-          <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-violet-100 text-4xl" aria-hidden="true">🏆</div>
-          <p class="mt-6 text-sm font-bold uppercase tracking-[0.18em] text-violet-600">Вікторину завершено</p>
-          <h1
-            #resultsHeading
-            tabindex="-1"
-            class="mt-2 text-3xl font-black sm:text-4xl"
+          <div
+            class="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-violet-100 text-4xl"
+            aria-hidden="true"
           >
+            🏆
+          </div>
+          <p class="mt-6 text-sm font-bold uppercase tracking-[0.18em] text-violet-600">
+            Вікторину завершено
+          </p>
+          <h1 #resultsHeading tabindex="-1" class="mt-2 text-3xl font-black sm:text-4xl">
             Чудова робота!
           </h1>
           <p class="mt-3 text-slate-600">Кожна спроба — це можливість дізнатися щось нове.</p>
@@ -305,15 +430,21 @@
             <div class="mt-5 grid grid-cols-2 gap-3 text-left">
               <div class="rounded-2xl border border-slate-200 p-4">
                 <p class="text-sm text-slate-600">Правильні відповіді</p>
-                <p class="mt-1 text-2xl font-extrabold text-emerald-600">{{ finalResult.correctAnswers }}</p>
+                <p class="mt-1 text-2xl font-extrabold text-emerald-600">
+                  {{ finalResult.correctAnswers }}
+                </p>
               </div>
               <div class="rounded-2xl border border-slate-200 p-4">
                 <p class="text-sm text-slate-600">Неправильні відповіді</p>
-                <p class="mt-1 text-2xl font-extrabold text-rose-600">{{ finalResult.incorrectAnswers }}</p>
+                <p class="mt-1 text-2xl font-extrabold text-rose-600">
+                  {{ finalResult.incorrectAnswers }}
+                </p>
               </div>
               <div class="col-span-2 rounded-2xl border border-slate-200 p-4">
                 <p class="text-sm text-slate-600">Тривалість</p>
-                <p class="mt-1 text-2xl font-extrabold">{{ formatDuration(finalResult.durationSeconds) }}</p>
+                <p class="mt-1 text-2xl font-extrabold">
+                  {{ formatDuration(finalResult.durationSeconds) }}
+                </p>
               </div>
             </div>
           }
@@ -334,4 +465,3 @@
     </footer>
   </main>
 </div>
-

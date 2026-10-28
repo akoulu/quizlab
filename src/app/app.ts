@@ -9,12 +9,11 @@
   ViewChild,
 } from '@angular/core';
 
-import type {
-  CategoryId,
-  DifficultyId,
-} from './domain/quiz.types';
+import type { CategoryId, DifficultyId, QuizQuestion } from './domain/quiz.types';
 
-import type { QuizSettings } from './domain/quiz.models';
+import type { Question, Quiz, QuizSettings } from './domain/quiz.models';
+import type { QuizId } from './domain/quiz.types';
+import { QuizApplicationService } from './application/quiz-application.service';
 import { QuizService } from './services/quiz.service';
 
 @Component({
@@ -26,6 +25,66 @@ import { QuizService } from './services/quiz.service';
 export class App {
   protected readonly quiz = inject(QuizService);
   private readonly injector = inject(Injector);
+  private readonly quizApplication = inject(QuizApplicationService);
+
+  protected readonly customQuizzes = signal<readonly Quiz[]>([]);
+  protected readonly customQuizzesLoading = signal(false);
+  protected readonly customQuizzesNotice = signal('');
+
+  constructor() {
+    void this.loadPublishedQuizzes();
+  }
+
+  protected async loadPublishedQuizzes(): Promise<void> {
+    this.customQuizzesLoading.set(true);
+    this.customQuizzesNotice.set('');
+
+    try {
+      const quizzes = await this.quizApplication.getAll();
+
+      this.customQuizzes.set(
+        quizzes.filter((item) => item.source === 'user' && item.status === 'published'),
+      );
+    } catch (error: unknown) {
+      this.customQuizzesNotice.set(
+        error instanceof Error ? error.message : 'Не вдалося завантажити користувацькі вікторини.',
+      );
+    } finally {
+      this.customQuizzesLoading.set(false);
+    }
+  }
+
+  protected async startCustomQuiz(quiz: Quiz): Promise<void> {
+    this.customQuizzesNotice.set('');
+
+    try {
+      const questions = await this.quizApplication.getPublishedQuestions(quiz.id);
+      const runtimeQuestions = questions.map((question) => this.toRuntimeQuestion(question));
+
+      this.quiz.startQuizWithQuestions(runtimeQuestions);
+      this.notice.set('');
+      this.focusAfterRender('question');
+    } catch (error: unknown) {
+      this.customQuizzesNotice.set(
+        error instanceof Error ? error.message : 'Не вдалося розпочати користувацьку вікторину.',
+      );
+    }
+  }
+
+  private toRuntimeQuestion(question: Question): QuizQuestion {
+    return {
+      id: question.id,
+      category: question.category,
+      difficulty: question.difficulty,
+      question: question.text,
+      options: question.options.map((option) => ({
+        id: option.id,
+        text: option.text,
+      })),
+      correctAnswerId: question.correctAnswerId,
+      explanation: question.explanation,
+    };
+  }
 
   @ViewChild('settingsHeading')
   private settingsHeading?: ElementRef<HTMLElement>;
@@ -176,4 +235,3 @@ export class App {
     }
   }
 }
-

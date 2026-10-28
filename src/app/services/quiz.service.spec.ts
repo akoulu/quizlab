@@ -38,16 +38,12 @@ describe('QuizService', () => {
   it('should report the number of available questions', () => {
     const expectedCount = QUESTIONS.filter(
       (question) =>
-        question.category === settings.category &&
-        question.difficulty === settings.difficulty,
+        question.category === settings.category && question.difficulty === settings.difficulty,
     ).length;
 
-    expect(
-      service.getAvailableQuestionCount(
-        settings.category,
-        settings.difficulty,
-      ),
-    ).toBe(expectedCount);
+    expect(service.getAvailableQuestionCount(settings.category, settings.difficulty)).toBe(
+      expectedCount,
+    );
   });
 
   it('should start a quiz with the requested settings', () => {
@@ -64,24 +60,17 @@ describe('QuizService', () => {
   });
 
   it('should reject a question count below one', () => {
-    expect(() =>
-      service.startQuiz({ ...settings, questionCount: 0 }),
-    ).toThrowError(RangeError);
+    expect(() => service.startQuiz({ ...settings, questionCount: 0 })).toThrowError(RangeError);
 
     expect(service.state().phase).toBe('idle');
   });
 
   it('should reject a non-integer question count', () => {
-    expect(() =>
-      service.startQuiz({ ...settings, questionCount: 1.5 }),
-    ).toThrowError(RangeError);
+    expect(() => service.startQuiz({ ...settings, questionCount: 1.5 })).toThrowError(RangeError);
   });
 
   it('should reject more questions than are available', () => {
-    const available = service.getAvailableQuestionCount(
-      settings.category,
-      settings.difficulty,
-    );
+    const available = service.getAvailableQuestionCount(settings.category, settings.difficulty);
 
     expect(() =>
       service.startQuiz({
@@ -97,22 +86,14 @@ describe('QuizService', () => {
     service.startQuiz(settings);
 
     for (const question of service.state().questions) {
-      const originalQuestion = QUESTIONS.find(
-        (item) => item.id === question.id,
-      );
+      const originalQuestion = QUESTIONS.find((item) => item.id === question.id);
 
       expect(originalQuestion).toBeDefined();
-      expect(question.options).toHaveLength(
-        originalQuestion!.options.length,
-      );
+      expect(question.options).toHaveLength(originalQuestion!.options.length);
       expect(question.options.map((option) => option.id).sort()).toEqual(
         originalQuestion!.options.map((option) => option.id).sort(),
       );
-      expect(
-        question.options.some(
-          (option) => option.id === question.correctAnswerId,
-        ),
-      ).toBe(true);
+      expect(question.options.some((option) => option.id === question.correctAnswerId)).toBe(true);
     }
   });
 
@@ -135,9 +116,7 @@ describe('QuizService', () => {
     service.submitAnswer(question.correctAnswerId);
 
     expect(service.state().phase).toBe('answered');
-    expect(service.state().selectedAnswerId).toBe(
-      question.correctAnswerId,
-    );
+    expect(service.state().selectedAnswerId).toBe(question.correctAnswerId);
     expect(service.state().answers).toHaveLength(1);
     expect(service.state().answers[0].isCorrect).toBe(true);
     expect(service.state().score).toBe(1);
@@ -148,9 +127,7 @@ describe('QuizService', () => {
     service.startQuiz(settings);
 
     const question = service.currentQuestion()!;
-    const wrongOption = question.options.find(
-      (option) => option.id !== question.correctAnswerId,
-    )!;
+    const wrongOption = question.options.find((option) => option.id !== question.correctAnswerId)!;
 
     service.submitAnswer(wrongOption.id);
 
@@ -164,9 +141,7 @@ describe('QuizService', () => {
 
     const question = service.currentQuestion()!;
     const firstAnswer = question.correctAnswerId;
-    const secondAnswer = question.options.find(
-      (option) => option.id !== firstAnswer,
-    )!.id;
+    const secondAnswer = question.options.find((option) => option.id !== firstAnswer)!.id;
 
     service.submitAnswer(firstAnswer);
     service.submitAnswer(secondAnswer);
@@ -263,7 +238,6 @@ describe('QuizService', () => {
     expect(service.getResult()).toBeNull();
   });
 
-
   it('should reject a negative question count', () => {
     expect(() => service.startQuiz({ ...settings, questionCount: -1 })).toThrowError(RangeError);
 
@@ -335,5 +309,73 @@ describe('QuizService', () => {
     expect(service.state().phase).toBe('completed');
     expect(service.state().answers).toHaveLength(settings.questionCount);
     expect(service.state().score).toBe(settings.questionCount);
+  });
+
+  it('should start a quiz with externally supplied questions', () => {
+    const questions = QUESTIONS.slice(0, 2);
+    service.startQuizWithQuestions(questions);
+    expect(service.state().phase).toBe('playing');
+    expect(service.state().questions).toHaveLength(2);
+    expect(service.state().currentQuestionIndex).toBe(0);
+    expect(service.state().selectedAnswerId).toBeNull();
+    expect(service.state().answers).toHaveLength(0);
+    expect(service.state().startedAt).not.toBeNull();
+    expect(service.currentQuestion()).not.toBeNull();
+
+    for (const question of service.state().questions) {
+      expect(question.options.some((option) => option.id === question.correctAnswerId)).toBe(true);
+    }
+  });
+
+  it('should reject an empty set of externally supplied questions', () => {
+    expect(() => service.startQuizWithQuestions([])).toThrowError(RangeError);
+    expect(service.state().phase).toBe('idle');
+  });
+
+  it('should reject duplicate question IDs', () => {
+    const question = QUESTIONS[0];
+    expect(() => service.startQuizWithQuestions([question, question])).toThrowError(
+      'ID запитань мають бути непорожніми й унікальними.',
+    );
+    expect(service.state().phase).toBe('idle');
+  });
+
+  it('should reject questions with fewer than two answer options', () => {
+    const question = QUESTIONS[0];
+    const invalidQuestion = {
+      ...question,
+      options: [question.options[0]],
+      correctAnswerId: question.options[0].id,
+    };
+
+    expect(() => service.startQuizWithQuestions([invalidQuestion])).toThrowError(
+      'Кожне запитання повинно мати щонайменше два варіанти відповіді.',
+    );
+    expect(service.state().phase).toBe('idle');
+  });
+
+  it('should reject a correct answer ID that does not exist', () => {
+    const question = QUESTIONS[0];
+    const invalidQuestion = {
+      ...question,
+      correctAnswerId: 'missing-answer-id',
+    };
+
+    expect(() => service.startQuizWithQuestions([invalidQuestion])).toThrowError(
+      'Правильна відповідь повинна посилатися на наявний варіант.',
+    );
+    expect(service.state().phase).toBe('idle');
+  });
+
+  it('should preserve the current session when supplied questions are invalid', () => {
+    service.startQuiz({
+      category: 'general',
+      difficulty: 'easy',
+      questionCount: 2,
+    });
+
+    const previousState = service.state();
+    expect(() => service.startQuizWithQuestions([])).toThrowError(RangeError);
+    expect(service.state()).toBe(previousState);
   });
 });
